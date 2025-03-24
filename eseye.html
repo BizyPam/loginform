@@ -1,0 +1,99 @@
+<?php
+session_start();
+require_once dirname(__DIR__, 1) . '/config/config.php';
+
+if (!isset($_SESSION['user_id'])) {
+    header("Location: inscription.html");
+    exit();
+}
+
+$stmt = $pdo->prepare("SELECT nom_complet, numero_telephone, code_reference FROM Inscription WHERE id = ?");
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
+?>
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de Bord - Bizypam</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <style>
+        #side-menu {
+            position: fixed;
+            top: 0;
+            right: -100%; /* Meni a kache nèt pa default */
+            width: 300px;
+            height: 100%;
+            background: white;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease-in-out;
+            z-index: 1000;
+        }
+        .show-menu {
+            right: 0 !important; /* Fè meni a parèt sou bò dwat */
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="min-h-screen flex flex-col">
+        <main class="flex flex-1 flex-col">
+            <section class="flex-1 p-6">
+                <iframe id="content-frame" src="accueil.php" class="w-full h-screen border-none"></iframe>
+            </section>
+
+            <!-- Menu lateral anndan Dashboard -->
+            <div id="side-menu" class="p-6">
+                <button onclick="closeMenu()" class="text-gray-600 text-xl absolute top-4 right-4">&times;</button>
+                <div class="text-center">
+                    <img src="icons/user.svg" class="w-16 h-16 mx-auto mb-2" alt="User">
+                    <h2 class="text-xl font-bold"><?php echo htmlspecialchars($user['nom_complet']); ?></h2>
+                    <p class="text-gray-600"><?php echo htmlspecialchars($user['numero_telephone']); ?></p>
+                    <a href="edit_profil.php" class="text-blue-500 text-sm">Modifier le Profil</a>
+                </div>
+                <hr class="my-4">
+                <nav>
+                    <a href="profil.php" class="block py-2 px-4 hover:bg-gray-200">Mon Profil</a>
+                    <a href="parametres.php" class="block py-2 px-4 hover:bg-gray-200">Paramètres</a>
+                    <a href="support.php" class="block py-2 px-4 hover:bg-gray-200">Support</a>
+                    <a href="promotions.php" class="block py-2 px-4 hover:bg-gray-200">Promotions</a>
+                    <a href="services.php" class="block py-2 px-4 hover:bg-gray-200">Services</a>
+                </nav>
+                <hr class="my-4">
+                <a href="logout.php" class="block py-2 px-4 bg-red-500 text-white text-center rounded-lg">Se Déconnecter</a>
+            </div>
+        </main>
+
+        <!-- Menu anba ak ikon -->
+        <nav class="fixed bottom-0 left-0 w-full bg-white shadow-md flex justify-around p-3">
+            <button class="menu-btn px-4 py-2 text-gray-600" onclick="loadPage('accueil.php', this)"><i class="fas fa-home"></i> Accueil</button>
+            <button class="menu-btn px-4 py-2 text-gray-600" onclick="loadPage('boutique.html', this)"><i class="fas fa-store"></i> Store</button>
+            <button class="menu-btn px-4 py-2 text-gray-600" onclick="loadPage('activite.php', this)"><i class="fas fa-cogs"></i> Activité</button>
+            <button class="menu-btn px-4 py-2 text-gray-600" onclick="toggleMenu()"><i class="fas fa-bars"></i> Menu</button>
+        </nav>
+    </div>
+
+    <script>
+        function loadPage(page, button) {
+            document.getElementById('content-frame').src = page;
+            document.querySelectorAll('.menu-btn').forEach(btn => {
+                btn.classList.remove('border-purple-600');
+                btn.classList.add('border-transparent');
+            });
+            button.classList.remove('border-transparent');
+            button.classList.add('border-purple-600');
+        }
+
+        function toggleMenu() {
+            document.getElementById('side-menu').classList.toggle('show-menu');
+        }
+
+        function closeMenu() {
+            document.getElementById('side-menu').classList.remove('show-menu');
+        }
+    </script>
+</body>
+</html>
